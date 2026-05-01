@@ -1,6 +1,6 @@
 # STYK1 Knockdown RNA-Seq Analysis in Pancreatic Cancer
 
-Bulk RNA-seq differential expression analysis to uncover biochemical regulatory changes between STYK1 knockdown and control samples in pancreatic cancer.
+Bulk RNA-seq differential expression analysis to uncover biochemical regulatory changes between STYK1 knockdown and control samples in pancreatic cancer (PANC-1 cells).
 
 ---
 
