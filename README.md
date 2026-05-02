@@ -181,13 +181,14 @@ These findings collectively suggest STYK1 plays a broad role in regulating **cel
 | Fig 8 | Top 20 Genes by Significance Level |
 
 ---
-
+ 
 ## Repository Structure
-
+ 
 ```
-├── RNA_seq_analysis.Rmd                              # Full annotated R analysis pipeline
+├── PANC-1-RNA-Seq.Rmd                                # Full annotated R analysis pipeline
 ├── DE_sig_results_annotated_STYK1_knockdown.csv      # Significant DE gene list with annotations
-├── plots/
+├── session_info.txt                                  # Full R session information
+├── figures/
 │   ├── correlation_heatmap.pdf                       # Fig 1
 │   ├── PCA_plot.pdf                                  # Fig 2
 │   ├── Dispersion_Graph_of_DESeq2_Fitted_Line.pdf    # Fig 3
@@ -196,9 +197,11 @@ These findings collectively suggest STYK1 plays a broad role in regulating **cel
 │   ├── Heatmap_Hierarchical_Clustering.pdf           # Fig 6
 │   ├── Volcano_Plot_for_DE_Analysis.pdf              # Fig 7
 │   └── Top_20_Genes_by_Significance_Level.pdf        # Fig 8
+├── fastqc_out/                                       # FastQC output reports
+├── multiqc_out/                                      # MultiQC aggregated reports
 └── README.md
 ```
-
+ 
 ---
 
 ## How to Run
