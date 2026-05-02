@@ -145,7 +145,7 @@ With α = 0.05 applied across 22,248 genes, an estimated **~140 genes** are expe
 ### Key Genes of Biological Interest
 
 **ALCAM (Activated Leukocyte Cell Adhesion Molecule)**
-Downregulated following STYK1 knockdown. ALCAM overexpression is directly linked to cancer cell migration and metastatic potential. Its downregulation suggests STYK1 knockdown may suppress the invasive capacity of Panc-1 cells — a therapeutically relevant finding in pancreatic cancer where metastasis is a primary driver of mortality.
+Downregulated following STYK1 knockdown. ALCAM overexpression is directly linked to cancer cell migration and metastatic potential. Its downregulation suggests STYK1 knockdown may suppress the invasive capacity of Panc-1 cells — a therapeutically relevant finding in pancreatic cancer, where metastasis is a primary driver of mortality.
 
 **HLA-A (Human Leukocyte Antigen A)**
 Downregulated following STYK1 knockdown. HLA-A is a MHC class I molecule responsible for presenting tumor antigens to cytotoxic T cells. Reduced HLA-A expression is associated with decreased response to PD-L1 checkpoint inhibitor therapy, as T cells require antigen presentation to recognize and destroy tumor cells. This finding has direct implications for understanding how STYK1 knockdown may influence immunotherapy efficacy in pancreatic cancer — specifically suggesting that STYK1 loss may reduce the enhanced efficacy observed with anti-PD-L1 therapy by impairing antigen presentation.
@@ -163,7 +163,7 @@ Downregulated — tight junction protein frequently dysregulated in pancreatic c
 Differentially expressed — a drug metabolism enzyme with known implications in chemotherapy resistance in pancreatic cancer.
 
 **MXRA5**
-Downregulated — matrix remodeling associated protein involved in extracellular matrix and tumor microenvironment remodeling.
+Downregulated — matrix remodeling-associated protein involved in extracellular matrix and tumor microenvironment remodeling.
 
 These findings collectively suggest STYK1 plays a broad role in regulating **cell adhesion, epithelial-mesenchymal transition, immune recognition, and drug metabolism** pathways in Panc-1 pancreatic cancer cells — with direct implications for drug target prioritization, metastasis suppression, and immunotherapy response.
 
@@ -211,7 +211,7 @@ BiocManager::install(c("DESeq2", "tximport", "org.Hs.eg.db", "biomaRt", "apeglm"
 install.packages(c("tidyverse", "pheatmap", "RColorBrewer"))
 ```
 
-Install command line tools via conda:
+Install command-line tools via conda:
 ```bash
 conda install -c bioconda fastqc multiqc fastp salmon sra-tools
 ```
