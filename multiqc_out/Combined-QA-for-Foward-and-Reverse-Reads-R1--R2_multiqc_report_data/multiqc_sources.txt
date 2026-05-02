@@ -1,0 +1,13 @@
+Module	Section	Sample Name	Source
+FastQC	all_sections	SRR33705621_1	/Users/jasonrivera/Desktop/fastqc_out/R1/SRR33705621_1_fastqc.zip
+FastQC	all_sections	SRR33705621_2	/Users/jasonrivera/Desktop/fastqc_out/R2/SRR33705621_2_fastqc.zip
+FastQC	all_sections	SRR33705622_1	/Users/jasonrivera/Desktop/fastqc_out/R1/SRR33705622_1_fastqc.zip
+FastQC	all_sections	SRR33705622_2	/Users/jasonrivera/Desktop/fastqc_out/R2/SRR33705622_2_fastqc.zip
+FastQC	all_sections	SRR33705623_1	/Users/jasonrivera/Desktop/fastqc_out/R1/SRR33705623_1_fastqc.zip
+FastQC	all_sections	SRR33705623_2	/Users/jasonrivera/Desktop/fastqc_out/R2/SRR33705623_2_fastqc.zip
+FastQC	all_sections	SRR33705624_1	/Users/jasonrivera/Desktop/fastqc_out/R1/SRR33705624_1_fastqc.zip
+FastQC	all_sections	SRR33705624_2	/Users/jasonrivera/Desktop/fastqc_out/R2/SRR33705624_2_fastqc.zip
+FastQC	all_sections	SRR33705625_1	/Users/jasonrivera/Desktop/fastqc_out/R1/SRR33705625_1_fastqc.zip
+FastQC	all_sections	SRR33705625_2	/Users/jasonrivera/Desktop/fastqc_out/R2/SRR33705625_2_fastqc.zip
+FastQC	all_sections	SRR33705626_1	/Users/jasonrivera/Desktop/fastqc_out/R1/SRR33705626_1_fastqc.zip
+FastQC	all_sections	SRR33705626_2	/Users/jasonrivera/Desktop/fastqc_out/R2/SRR33705626_2_fastqc.zip
