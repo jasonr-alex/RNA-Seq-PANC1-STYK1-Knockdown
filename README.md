@@ -1,30 +1,79 @@
-# STYK1 Knockdown RNA-Seq Analysis in Pancreatic Cancer
+# Bulk RNA-seq Analysis: STYK1 Knockdown in Panc-1 Pancreatic Cancer Cells
 
-Bulk RNA-seq differential expression analysis to uncover biochemical regulatory changes between STYK1 knockdown and control samples in pancreatic cancer (PANC-1 cells).
+## Overview
+
+This repository contains a complete end-to-end bulk RNA-seq analysis pipeline investigating the transcriptional effects of **STYK1 (Serine Threonine Tyrosine Kinase 1) knockdown** in Panc-1 human pancreatic cancer cells. STYK1 is a receptor tyrosine kinase implicated in cancer cell proliferation and survival, making it a compelling target in pancreatic cancer research — a disease with one of the lowest 5-year survival rates in oncology (~12%).
+
+The analysis was performed on publicly available paired-end sequencing data comprising **6 samples** (3 control, 3 knockdown) downloaded from the NCBI Sequence Read Archive (SRA).
+
+---
+
+## Biological Question
+
+What are the transcriptional consequences of STYK1 knockdown in Panc-1 pancreatic cancer cells, and what biological pathways are most affected?
 
 ---
 
 ## Table of Contents
 
-- [Background](#background)
-- [Data](#data)
 - [Pipeline Overview](#pipeline-overview)
-  - [1. Data Retrieval](#1-data-retrieval)
-  - [2. Quality Control](#2-quality-control)
-  - [3. Adapter Trimming](#3-adapter-trimming)
-  - [4. Transcript Quantification](#4-transcript-quantification)
-  - [5. Differential Expression Analysis](#5-differential-expression-analysis)
+- [Tools & Dependencies](#tools--dependencies)
+- [Data](#data)
+- [Methods](#methods)
 - [Results](#results)
+- [Repository Structure](#repository-structure)
+- [How to Run](#how-to-run)
 - [References](#references)
-- [Session Info](#session-info)
+- [Author](#author)
+- [Acknowledgements](#acknowledgements)
 
 ---
 
-## Background
+## Pipeline Overview
 
-STYK1 (Serine/Threonine/Tyrosine Kinase 1), also known as NOK (Novel Oncogene with Kinase-domain), is a receptor tyrosine kinase overexpressed across multiple cancer types, including non-small cell lung cancer, breast cancer, and pancreatic cancer. Recent work has demonstrated STYK1 as a targetable vulnerability that enhances anti-PD-L1 immunotherapy efficacy in pancreatic ductal adenocarcinoma (PDAC).
+```
+Raw FASTQ files
+      ↓
+Quality Control (FastQC + MultiQC)
+      ↓
+Adapter Trimming (fastp)
+      ↓
+Transcript Quantification (Salmon)
+      ↓
+Import & Gene-level Summarization (tximport)
+      ↓
+Differential Expression Analysis (DESeq2)
+      ↓
+Visualization & Annotation (ggplot2, pheatmap, org.Hs.eg.db)
+      ↓
+Annotated DE Gene List (CSV)
+```
 
-This project performs bulk RNA-seq differential expression analysis comparing STYK1 shRNA knockdown samples against scramble controls, with the goal of characterizing the downstream transcriptional consequences of STYK1 loss in pancreatic cancer cells.
+---
+
+## Tools & Dependencies
+
+### Command Line
+| Tool | Version | Purpose |
+|---|---|---|
+| SRA Toolkit (fasterq-dump) | Latest | Raw data download |
+| FastQC | 0.12.1 | Quality control |
+| MultiQC | 1.33 | QC report aggregation |
+| fastp | Latest | Adapter trimming |
+| Salmon | 1.11.4 | Transcript quantification |
+
+### R Packages
+| Package | Purpose |
+|---|---|
+| DESeq2 | Differential expression analysis |
+| tximport | Import Salmon output |
+| biomaRt | tx2gene mapping |
+| org.Hs.eg.db | Gene annotation |
+| ggplot2 | Visualization |
+| pheatmap | Heatmap generation |
+| apeglm | LFC shrinkage |
+| RColorBrewer | Color palettes |
+| tidyverse | Data manipulation |
 
 ---
 
@@ -32,136 +81,93 @@ This project performs bulk RNA-seq differential expression analysis comparing ST
 
 Data were retrieved from the NCBI Sequence Read Archive (SRA), hosted on AWS. The study accession is [SRP587732](https://www.ncbi.nlm.nih.gov/sra?term=SRP587732).
 
-| SRA Accession | Condition |
-|---|---|
-| SRR33705621 | shSTYK1 Knockdown |
-| SRR33705622 | shSTYK1 Knockdown |
-| SRR33705624 | shSTYK1 Knockdown |
-| SRR33705623 | Control |
-| SRR33705625 | Control |
-| SRR33705626 | Control |
+- **Organism:** Homo sapiens
+- **Cell line:** Panc-1 (human pancreatic cancer)
+- **Condition:** STYK1 shRNA knockdown vs. scramble control
+- **Sequencing:** Paired-end, 151bp reads
+- **Instrument:** Illumina NovaSeq X Plus
+- **Samples:** 6 total (3 control, 3 knockdown)
 
-**Instrument:** Illumina NovaSeq X Plus  
-**Library type:** Paired-end
-
----
-
-## Pipeline Overview
-
-### 1. Data Retrieval
-
-Data are stored on AWS and require the [NCBI SRA Toolkit](https://github.com/ncbi/sra-tools/wiki) and an AWS account to access.
-
-```bash
-# Download the file from the cloud provider (AWS) to a directory
-prefetch SRR33705621
-
-# Run in the same folder where the file was prefetched
-fasterq-dump [options] SRR33705621
-```
-
-### 2. Quality Control
-
-Quality was assessed using **FastQC** and **MultiQC**. RQC was not used due to memory limitations with files of this size (~18 GB). FastQC processes files in parallel via the `-t` flag (one file per thread) and does not encounter memory constraints regardless of file size.
-
-The average Phred score across all 6 samples (12 total FASTQ files) was **≥ 35**, exceeding the Q30 threshold (99.9% base call accuracy).
-
-```bash
-mkdir -p fastqc_out/R1 fastqc_out/R2 multiqc_out
-
-# Run FastQC on forward reads
-fastqc /path/to/sra_data/*_1.fastq \
-  -t 4 \
-  -o fastqc_out/R1/
-
-# Run FastQC on reverse reads
-fastqc /path/to/sra_data/*_2.fastq \
-  -t 4 \
-  -o fastqc_out/R2/
-
-# Aggregate reports with MultiQC
-multiqc fastqc_out/R1/ fastqc_out/R2/ \
-  -o multiqc_out/ \
-  --title "Combined QA for Forward and Reverse Reads (R1 & R2)"
-```
-
-### 3. Adapter Trimming
-
-Adapter sequences — synthetic components ligated to reads during library preparation to anchor them to the flow cell surface — were removed using **fastp** prior to mapping. Adapter removal improves downstream mapping rates.
-
-```bash
-for sample in SRR33705621 SRR33705622 SRR33705623 SRR33705624 SRR33705625 SRR33705626
-do
-  fastp \
-    -i ${sample}_1.fastq \
-    -I ${sample}_2.fastq \
-    -o trimmed/${sample}_1_trimmed.fastq \
-    -O trimmed/${sample}_2_trimmed.fastq \
-    --detect_adapter_for_pe \
-    --thread 10 \
-    -h trimmed/${sample}_fastp_report.html \
-    -j trimmed/${sample}_fastp_report.json
-done
-```
-
-### 4. Transcript Quantification
-
-Trimmed reads were mapped to the human reference transcriptome using **Salmon** — a lightweight, alignment-free quantification tool designed for transcript-level expression estimation. A decoy-aware Salmon index was built prior to quantification.
-
-```bash
-salmon quant \
-  -i ~/salmon_index \
-  -l A \
-  -1 SRR33705621_1_trimmed.fastq \
-  -2 SRR33705621_2_trimmed.fastq \
-  -p 9 \
-  --validateMappings \
-  -o SRR33705621_quant
-```
-
-> The output folder contains `quant.sf`, which holds the raw count data required for DESeq2 import via `tximport`.
-
-**Mapping rates across samples:**
-
-| Sample | Condition | Mapping Rate |
+| SRA Accession | Condition | Mapping Rate |
 |---|---|---|
-| SRR33705621 | shSTYK1 KD | 87.16% |
-| SRR33705622 | shSTYK1 KD | 86.37% |
-| SRR33705624 | shSTYK1 KD | 87.71% |
+| SRR33705621 | shSTYK1 Knockdown | 87.16% |
+| SRR33705622 | shSTYK1 Knockdown | 86.37% |
 | SRR33705623 | Control | 87.33% |
+| SRR33705624 | shSTYK1 Knockdown | 87.71% |
 | SRR33705625 | Control | 88.38% |
 | SRR33705626 | Control | 88.30% |
 
-### 5. Differential Expression Analysis
+**Average mapping rate: 87.54%** across all samples.
 
-Downstream differential expression (DE) analysis was performed in **R** using **DESeq2**, with counts imported via `tximport`. LFC shrinkage was applied using the `apeglm` method (Zhu et al., 2018).
+---
 
-**Filtering note:** No more than 30% of genes were filtered prior to modeling. Over-filtering reduces DESeq2's ability to accurately fit gene dispersions across the mean, leading to incomplete dispersion estimates and decreased statistical power.
+## Methods
+
+### 1. Quality Control
+FastQC was run on all 12 FASTQ files (6 samples × R1 + R2). MultiQC aggregated the results into a single report. All samples showed high per-base sequence quality (Phred > 35 across all 151bp positions) with minimal adapter contamination. RQC was not used due to memory limitations with files of this size.
+
+### 2. Adapter Trimming
+fastp was used to trim adapter sequences with `--detect_adapter_for_pe` for automatic paired-end adapter detection.
+
+### 3. Quantification
+Salmon (v1.11.4) was used for quasi-mapping quantification against the human transcriptome (Ensembl GRCh38 release 111). The `--validateMappings` flag was applied for improved accuracy.
+
+### 4. Differential Expression Analysis
+Transcript-level counts were imported and summarized to gene level using `tximport` with a tx2gene mapping table generated via `biomaRt`. A DESeq2 object was constructed without pre-filtering to retain maximum statistical power. Normalization was performed using `rlog()` transformation (`blind = TRUE`) for visualization. Differential expression was tested using the Wald test with a Benjamini-Hochberg adjusted p-value threshold of **α = 0.05**. Log2 fold changes were shrunk using the `apeglm` method (Zhu et al., 2018) to reduce noise from low-count genes.
 
 ---
 
 ## Results
 
-DE analysis was run at **α = 0.05** across 11,960 mapped genes, with an estimated ~21 expected false positives.
+### Quality Metrics
+- All 12 files passed per-base sequence quality checks
+- Uniform read length of 151bp across all samples
+- Overrepresented sequences < 1% across all samples
+- Adapter content detected at 3' ends — corrected with fastp trimming
+
+### Sample-Level QC
+- PCA plot confirmed clean separation between control and knockdown groups along PC1 (75% variance)
+- Sample correlation heatmap showed high within-group similarity (r > 0.999) and clear between-group differences
+
+### Differential Expression
+At FDR < 5%, **2,808 genes** were significantly differentially expressed across 22,248 genes with nonzero total read count:
 
 | Category | Gene Count |
 |---|---|
-| Total mapped genes | 11,960 |
-| Upregulated (LFC > 0) | 211 |
-| Downregulated (LFC < 0) | 214 |
-| Outlier genes | 2 |
-| Low-count genes filtered | 2,383 |
+| Total genes with nonzero counts | 22,248 |
+| Upregulated in knockdown (LFC > 0) | 1,382 (6.2%) |
+| Downregulated in knockdown (LFC < 0) | 1,426 (6.4%) |
+| Outlier genes | 28 (0.13%) |
+| Low-count genes filtered | 6,223 (28%) |
 
-**PCA:** PC1 explained 89% of variance, driven by the knockdown vs. control condition. PC2 captured within-group biological variation.
+With α = 0.05 applied across 22,248 genes, an estimated **~140 genes** are expected to be false positives, meaning the vast majority of the 2,808 significant genes represent real biological signals.
 
-**Notable differentially expressed genes:**
+### Key Genes of Biological Interest
 
-- **SHH** — Downregulated upon STYK1 knockdown. SHH (Sonic Hedgehog) is a developmental morphogen that, when dysregulated, drives the occurrence of multiple cancers including pancreatic cancer.
-- **EFNB2** — Downregulated upon STYK1 knockdown. EFNB2 regulates endothelial cell survival and angiogenesis, suggesting STYK1 may promote tumor vascularization via this axis.
+**ALCAM (Activated Leukocyte Cell Adhesion Molecule)**
+Downregulated following STYK1 knockdown. ALCAM overexpression is directly linked to cancer cell migration and metastatic potential. Its downregulation suggests STYK1 knockdown may suppress the invasive capacity of Panc-1 cells — a therapeutically relevant finding in pancreatic cancer where metastasis is a primary driver of mortality.
 
-These results establish STYK1 as a valid therapeutic target and reveal the downstream transcriptional circuitry disrupted by its loss in pancreatic cancer.
+**HLA-A (Human Leukocyte Antigen A)**
+Downregulated following STYK1 knockdown. HLA-A is a MHC class I molecule responsible for presenting tumor antigens to cytotoxic T cells. Reduced HLA-A expression is associated with decreased response to PD-L1 checkpoint inhibitor therapy, as T cells require antigen presentation to recognize and destroy tumor cells. This finding has direct implications for understanding how STYK1 knockdown may influence immunotherapy efficacy in pancreatic cancer — specifically suggesting that STYK1 loss may reduce the enhanced efficacy observed with anti-PD-L1 therapy by impairing antigen presentation.
 
-**Figures:**
+**CDH2 (N-cadherin)**
+Downregulated in knockdown — involved in epithelial-mesenchymal transition (EMT), a key process in cancer invasion and metastasis.
+
+**INHBB & BMP5**
+Differentially expressed genes belonging to the TGF-β signaling pathway, a major driver of pancreatic cancer progression.
+
+**CLDN1 (Claudin-1)**
+Downregulated — tight junction protein frequently dysregulated in pancreatic cancer, involved in tumor invasion.
+
+**CYP1B1**
+Differentially expressed — a drug metabolism enzyme with known implications in chemotherapy resistance in pancreatic cancer.
+
+**MXRA5**
+Downregulated — matrix remodeling associated protein involved in extracellular matrix and tumor microenvironment remodeling.
+
+These findings collectively suggest STYK1 plays a broad role in regulating **cell adhesion, epithelial-mesenchymal transition, immune recognition, and drug metabolism** pathways in Panc-1 pancreatic cancer cells — with direct implications for drug target prioritization, metastasis suppression, and immunotherapy response.
+
+### Figures
 
 | Figure | Description |
 |---|---|
@@ -173,6 +179,50 @@ These results establish STYK1 as a valid therapeutic target and reveal the downs
 | Fig 6 | Heatmap with Hierarchical Clustering of Significant Genes |
 | Fig 7 | Volcano Plot for DE Analysis |
 | Fig 8 | Top 20 Genes by Significance Level |
+
+---
+
+## Repository Structure
+
+```
+├── RNA_seq_analysis.Rmd                              # Full annotated R analysis pipeline
+├── DE_sig_results_annotated_STYK1_knockdown.csv      # Significant DE gene list with annotations
+├── plots/
+│   ├── correlation_heatmap.pdf                       # Fig 1
+│   ├── PCA_plot.pdf                                  # Fig 2
+│   ├── Dispersion_Graph_of_DESeq2_Fitted_Line.pdf    # Fig 3
+│   ├── MA_plot_before_shrinkage.pdf                  # Fig 4
+│   ├── MA_plot_after_shrinkage.pdf                   # Fig 5
+│   ├── Heatmap_Hierarchical_Clustering.pdf           # Fig 6
+│   ├── Volcano_Plot_for_DE_Analysis.pdf              # Fig 7
+│   └── Top_20_Genes_by_Significance_Level.pdf        # Fig 8
+└── README.md
+```
+
+---
+
+## How to Run
+
+### Prerequisites
+Install required R packages:
+```r
+install.packages("BiocManager")
+BiocManager::install(c("DESeq2", "tximport", "org.Hs.eg.db", "biomaRt", "apeglm"))
+install.packages(c("tidyverse", "pheatmap", "RColorBrewer"))
+```
+
+Install command line tools via conda:
+```bash
+conda install -c bioconda fastqc multiqc fastp salmon sra-tools
+```
+
+### Steps
+1. Download raw data using `fasterq-dump` with SRR accession numbers listed above
+2. Run FastQC and MultiQC for quality control
+3. Trim adapters with fastp
+4. Build Salmon index from human transcriptome (Ensembl GRCh38)
+5. Run Salmon quantification for each sample
+6. Open and run `RNA_seq_analysis.Rmd` in RStudio
 
 ---
 
@@ -190,7 +240,7 @@ These results establish STYK1 as a valid therapeutic target and reveal the downs
 
 ## Acknowledgements
 
-Raw sequencing data were provided by the authors of reference [1] and used here for educational purposes.
+Raw sequencing data were obtained from the NCBI Sequence Read Archive (SRA) and used here for educational and research purposes. Analysis was performed using open-source bioinformatics tools. Gene annotations sourced from Ensembl GRCh38 and the org.Hs.eg.db Bioconductor package.
 
 ---
 
@@ -201,10 +251,12 @@ R version 4.5.3 (2026-03-11)
 Platform: aarch64-apple-darwin20
 Running under: macOS Tahoe 26.3.1
 
-Key packages:
-  DESeq2 1.50.2 | tximport 1.38.2 | apeglm 1.32.0
-  ggplot2 4.0.3 | pheatmap 1.0.13 | biomaRt 2.66.1
-  tidyverse 2.0.0 | org.Hs.eg.db 3.22.0
+Key attached packages:
+  DESeq2 1.50.2           tximport 1.38.2         apeglm 1.32.0
+  biomaRt 2.66.1          org.Hs.eg.db 3.22.0     AnnotationDbi 1.72.0
+  ggplot2 4.0.3           pheatmap 1.0.13          RColorBrewer 1.1-3
+  tidyverse 2.0.0         dplyr 1.2.1              tibble 3.3.1
+  GenomicRanges 1.62.1    SummarizedExperiment 1.40.0  BiocManager 1.30.27
 ```
 
 Full session info available in `session_info.txt`.
