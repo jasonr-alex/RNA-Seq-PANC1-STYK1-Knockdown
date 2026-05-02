@@ -140,7 +140,7 @@ At FDR < 5%, **2,808 genes** were significantly differentially expressed across 
 | Outlier genes | 28 (0.13%) |
 | Low-count genes filtered | 6,223 (28%) |
 
-With α = 0.05 applied across 22,248 genes, an estimated **~140 genes** are expected to be false positives, meaning the vast majority of the 2,808 significant genes represent real biological signals.
+With α = 0.05 applied across 22,248 genes, an estimated **~140 genes** are expected to be false positives from the 2,808 significant genes recorded, meaning the vast majority of the 2,808 significant genes represent real biological signals.
 
 ### Key Genes of Biological Interest
 
@@ -148,7 +148,7 @@ With α = 0.05 applied across 22,248 genes, an estimated **~140 genes** are expe
 Downregulated following STYK1 knockdown. ALCAM overexpression is directly linked to cancer cell migration and metastatic potential. Its downregulation suggests STYK1 knockdown may suppress the invasive capacity of Panc-1 cells — a therapeutically relevant finding in pancreatic cancer, where metastasis is a primary driver of mortality.
 
 **HLA-A (Human Leukocyte Antigen A)**
-Downregulated following STYK1 knockdown. HLA-A is a MHC class I molecule responsible for presenting tumor antigens to cytotoxic T cells. Reduced HLA-A expression is associated with decreased response to PD-L1 checkpoint inhibitor therapy, as T cells require antigen presentation to recognize and destroy tumor cells. This finding has direct implications for understanding how STYK1 knockdown may influence immunotherapy efficacy in pancreatic cancer — specifically suggesting that STYK1 loss may reduce the enhanced efficacy observed with anti-PD-L1 therapy by impairing antigen presentation.
+Downregulated following STYK1 knockdown. HLA-A is a MHC class I molecule responsible for presenting tumor antigens to cytotoxic T cells. Reduced HLA-A expression is associated with decreased response to PD-L1 checkpoint inhibitor therapy, as T cells require antigen presentation to recognize and destroy tumor cells. This finding has direct implications for understanding how STYK1 knockdown may influence immunotherapy efficacy in pancreatic cancer, specifically suggesting that STYK1 loss may reduce the enhanced efficacy observed with anti-PD-L1 therapy by impairing antigen presentation.
 
 **CDH2 (N-cadherin)**
 Downregulated in knockdown — involved in epithelial-mesenchymal transition (EMT), a key process in cancer invasion and metastasis.
